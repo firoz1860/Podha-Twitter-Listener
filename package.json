@@ -1,0 +1,42 @@
+{
+  "name": "podha-twitter-listener",
+  "version": "1.0.0",
+  "description": "Twitter listening workflow for Podha Protocol and RWA narratives",
+  "main": "src/index.js",
+  "private": true,
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node -e \"require('dotenv').config(); const AdminDashboard = require('./src/services/adminDashboard'); const dashboard = new AdminDashboard(); dashboard.start();\"",
+    "build": "npm install --production",
+    "test": "node src/test.js",
+    "setup": "node src/setup.js",
+    "dashboard": "node -e \"require('dotenv').config(); const AdminDashboard = require('./src/services/adminDashboard'); const dashboard = new AdminDashboard(); dashboard.start();\"",
+    "n8n": "node src/n8nIntegration.js",
+    "n8n:test": "node src/n8nIntegration.js --test",
+    "n8n:health": "node src/n8nIntegration.js --health",
+    "n8n:config": "node src/n8nIntegration.js --config"
+  },
+  "dependencies": {
+    "@notionhq/client": "^4.0.0",
+    "axios": "^1.6.0",
+    "cheerio": "^1.0.0-rc.12",
+    "cron": "^3.1.6",
+    "dotenv": "^16.3.1",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "puppeteer": "^21.11.0",
+    "sqlite3": "^5.1.6",
+    "winston": "^3.11.0"
+  },
+  "keywords": [
+    "twitter",
+    "scraping",
+    "podha",
+    "rwa",
+    "discord",
+    "n8n"
+  ],
+  "author": "Podha Protocol",
+  "license": "MIT"
+}

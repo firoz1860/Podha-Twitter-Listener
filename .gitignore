@@ -1,0 +1,5 @@
+node_modules
+.env
+.env.example
+.PROJECT_GUIDE.txt
+.TEST_CURRENT_STATUS.txt

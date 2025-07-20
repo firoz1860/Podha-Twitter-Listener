@@ -1,0 +1,284 @@
+{
+  "name": "Podha Twitter Listener Enhanced",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hour": 1
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "command": "cd /data && node src/index.js --n8n"
+      },
+      "name": "Execute Podha Listener",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Execute Podha Listener\"].json[\"status\"]}}",
+              "value2": "success"
+            }
+          ]
+        }
+      },
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "url": "={{$env[\"DISCORD_WEBHOOK_URL\"]}}",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "embeds",
+              "value": "[{\"title\":\"✅ Podha Twitter Listener Success\",\"description\":\"Found {{$node[\"Execute Podha Listener\"].json[\"tweetsFound\"]}} new tweets\",\"color\":3066993,\"timestamp\":\"{{$now}}\",\"footer\":{\"text\":\"Podha Twitter Listener • n8n\"}}]"
+            }
+          ]
+        }
+      },
+      "name": "Success Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [900, 180]
+    },
+    {
+      "parameters": {
+        "url": "={{$env[\"DISCORD_WEBHOOK_URL\"]}}",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "embeds",
+              "value": "[{\"title\":\"❌ Podha Twitter Listener Error\",\"description\":\"{{$node[\"Execute Podha Listener\"].json[\"error\"]}}\",\"color\":15158332,\"timestamp\":\"{{$now}}\",\"footer\":{\"text\":\"Podha Twitter Listener • n8n\"}}]"
+            }
+          ]
+        }
+      },
+      "name": "Error Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [900, 420]
+    },
+    {
+      "parameters": {
+        "url": "={{$env[\"AIRTABLE_BASE_URL\"]}}/{{$env[\"AIRTABLE_TABLE_NAME\"]}}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "fields",
+              "value": "={{$node[\"Execute Podha Listener\"].json[\"airtableData\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Log to Airtable",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1120, 180],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "airtable_auth",
+          "name": "Airtable Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.notion.com/v1/pages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {},
+        "bodyParametersUi": {
+          "parameter": [
+            {
+              "name": "parent",
+              "value": "{\"database_id\":\"{{$env[\"NOTION_DATABASE_ID\"]}}\"}"
+            },
+            {
+              "name": "properties",
+              "value": "={{$node[\"Execute Podha Listener\"].json[\"notionData\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Log to Notion",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [1120, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "notion_auth",
+          "name": "Notion Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "cd /data && node -e \"const rateLimiter = require('./src/services/rateLimiter'); console.log(JSON.stringify(rateLimiter.getStatus('twitter')));\""
+      },
+      "name": "Check Rate Limits",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [240, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$node[\"Check Rate Limits\"].json[\"currentRequests\"]}}",
+              "operation": "smaller",
+              "value2": "={{$node[\"Check Rate Limits\"].json[\"maxRequests\"]}}"
+            }
+          ]
+        }
+      },
+      "name": "Rate Limit Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "amount": "={{Math.max(0, $node[\"Check Rate Limits\"].json[\"resetTime\"] - Date.now())}}"
+      },
+      "name": "Wait for Rate Limit",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [680, 620]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Rate Limits",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Rate Limits": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Check": {
+      "main": [
+        [
+          {
+            "node": "Execute Podha Listener",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait for Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "Execute Podha Listener",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Podha Listener": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Notification": {
+      "main": [
+        [
+          {
+            "node": "Log to Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Airtable": {
+      "main": [
+        [
+          {
+            "node": "Log to Notion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": ["twitter", "podha", "rwa", "monitoring"],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-09T00:00:00.000Z"
+}

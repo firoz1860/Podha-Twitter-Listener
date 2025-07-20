@@ -1,0 +1,285 @@
+# PODHA TWITTER LISTENER - PROJECT GUIDE
+
+## WHAT IS THIS PROJECT?
+
+The Podha Twitter Listener is a comprehensive Twitter monitoring and notification system designed specifically for tracking Podha Protocol and Real World Assets (RWA) narratives on Twitter/X. It's an automated workflow that:
+
+1. **Monitors Twitter** for specific keywords and hashtags related to:
+   - Podha Protocol
+   - Real World Assets (RWA)
+   - DeFi and yield farming
+   - Smart Vaults and Safe Yield
+   - Bitcoin tokenized treasury
+   - Custodial vaults and delta neutral strategies
+
+2. **Filters and Processes** tweets using advanced search criteria:
+   - Only verified accounts (blue checkmarks)
+   - Minimum engagement thresholds (3+ likes)
+   - Logical keyword combinations (AND/OR operators)
+   - De-duplication to avoid spam
+
+3. **Sends Notifications** to Discord channels with rich embeds containing:
+   - Tweet content and author
+   - Engagement metrics (likes, retweets)
+   - Direct links to original tweets
+   - Timestamps and categorization
+
+4. **Stores Data** in SQLite database for:
+   - Historical tracking
+   - Analytics and reporting
+   - Preventing duplicate notifications
+   - Performance monitoring
+
+5. **Provides Admin Dashboard** for:
+   - Real-time monitoring
+   - Custom filter management
+   - System health checks
+   - Tweet analytics
+
+## HOW IT WORKS
+
+### Architecture Overview:
+```
+Twitter/Nitter → Scraper → Filter Engine → Database → Discord Notifier
+                     ↓
+              Admin Dashboard ← Analytics ← External Logging (Airtable/Notion)
+```
+
+### Key Components:
+
+1. **Twitter Scraper** (`src/services/twitterScraper.js`)
+   - Uses Puppeteer for direct Twitter scraping
+   - Nitter proxy support for rate limit avoidance
+   - Multiple authentication methods (cookie/credentials)
+   - Automatic retry and error handling
+
+2. **Filter Engine** (`src/services/filterEngine.js`)
+   - Pre-configured search queries for Podha/RWA topics
+   - Query validation and testing
+   - Custom filter management
+   - Tweet matching algorithms
+
+3. **Discord Notifier** (`src/services/discordNotifier.js`)
+   - Rich embed formatting
+   - Rate limiting compliance
+   - Error handling and retries
+   - System notifications
+
+4. **Database Storage** (`src/services/tweetStorage.js`)
+   - SQLite for local data persistence
+   - Tweet deduplication
+   - Analytics and statistics
+   - User and keyword management
+
+5. **Admin Dashboard** (`src/services/adminDashboard.js`)
+   - Web-based monitoring interface
+   - Real-time statistics
+   - Filter management
+   - System testing tools
+
+6. **External Integrations**:
+   - Airtable logging for spreadsheet tracking
+   - Notion database integration
+   - n8n workflow automation support
+
+### Search Filters (Pre-configured):
+
+1. **Podha RWA**: `filter:blue_verified min_faves:3 Podha AND ("RWA" OR "Real World Assets" OR "Yield")`
+2. **Solana Smart Vaults**: `filter:blue_verified min_faves:3 Solana AND ("Smart Vaults" OR "Safe Yield" OR "Podha")`
+3. **Bitcoin Treasury**: `filter:blue_verified min_faves:3 Bitcoin AND ("tokenized treasury" OR "credit protocol" OR "RWA on-chain")`
+4. **DeFi Custodial**: `filter:blue_verified min_faves:3 DeFi AND ("custodial vault" OR "delta neutral")`
+
+## HOW TO TEST THIS PROJECT
+
+### Prerequisites:
+1. Node.js installed
+2. Discord server with webhook access
+3. Twitter account (optional, for direct scraping)
+
+### Step 1: Environment Setup
+1. Copy `.env.example` to `.env`
+2. Configure required variables:
+   ```
+   DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR_ACTUAL_WEBHOOK_URL
+   DATABASE_PATH=./data/tweets.db
+   LOG_LEVEL=info
+   USE_NITTER=true
+   ENABLE_SCHEDULER=false
+   ADMIN_ENABLED=true
+   ```
+
+### Step 2: Install Dependencies
+```bash
+npm install
+```
+
+### Step 3: Initialize Project
+```bash
+npm run setup
+```
+This will:
+- Create necessary directories (data/, logs/)
+- Initialize SQLite database
+- Insert sample data
+- Test Discord webhook (if configured)
+
+### Step 4: Run Tests
+```bash
+npm test
+```
+This runs comprehensive tests for:
+- Discord webhook connectivity
+- Database functionality
+- Filter engine validation
+- Query processing
+- Tweet matching algorithms
+
+### Step 5: Manual Workflow Test
+```bash
+npm run test -- --manual
+```
+This executes a single workflow run to:
+- Test Twitter scraping
+- Process search queries
+- Filter and deduplicate results
+- Send notifications (if new tweets found)
+
+### Step 6: Start Admin Dashboard
+```bash
+npm run dashboard
+```
+Then visit: http://localhost:3000
+
+Dashboard features:
+- Real-time statistics
+- Recent tweets display
+- Filter testing and management
+- System health monitoring
+- Discord webhook testing
+
+### Step 7: Run Full Application
+```bash
+npm start
+```
+This starts the complete system with:
+- Scheduled monitoring (if enabled)
+- Continuous tweet processing
+- Automatic notifications
+- Admin dashboard access
+
+## TESTING SCENARIOS
+
+### 1. Basic Functionality Test
+- Run `npm test` to verify all components work
+- Check logs in `logs/app.log` for any errors
+- Verify database creation in `data/tweets.db`
+
+### 2. Discord Integration Test
+- Configure valid Discord webhook URL
+- Run dashboard and click "Test Discord Webhook"
+- Check Discord channel for test message
+
+### 3. Filter Testing
+- Access admin dashboard at http://localhost:3000
+- Use "Test Filter" feature with custom queries
+- Verify query validation works correctly
+
+### 4. Manual Workflow Test
+- Run `npm run test -- --manual`
+- Monitor logs for scraping activity
+- Check Discord for any new tweet notifications
+
+### 5. Scheduled Operation Test
+- Set `ENABLE_SCHEDULER=true` in .env
+- Set `RUN_INTERVAL_HOURS=1` for frequent testing
+- Run `npm start` and monitor for hourly execution
+
+### 6. n8n Integration Test (Advanced)
+- Import workflows from `n8n-workflows/` directory
+- Configure n8n environment variables
+- Test with `npm run n8n:test`
+
+## TROUBLESHOOTING
+
+### Common Issues:
+
+1. **Discord Webhook Error**
+   - Ensure DISCORD_WEBHOOK_URL is set to actual webhook URL
+   - Test webhook in Discord server settings
+   - Check webhook permissions
+
+2. **Database Errors**
+   - Verify `data/` directory exists and is writable
+   - Check SQLite installation
+   - Review database logs in `logs/app.log`
+
+3. **Twitter Scraping Issues**
+   - Use Nitter proxy (`USE_NITTER=true`) to avoid rate limits
+   - Configure Twitter credentials if direct scraping needed
+   - Check network connectivity
+
+4. **Rate Limiting**
+   - Increase `REQUEST_DELAY_MS` in .env
+   - Use Nitter instead of direct Twitter access
+   - Monitor rate limit status in admin dashboard
+
+### Log Files:
+- Application logs: `logs/app.log`
+- Exception logs: `logs/exceptions.log`
+- Database file: `data/tweets.db`
+
+### Performance Monitoring:
+- Admin dashboard shows real-time statistics
+- Database stores historical analytics
+- Rate limiter tracks API usage
+- Memory and uptime monitoring included
+
+## ADVANCED FEATURES
+
+### External Integrations:
+1. **Airtable**: Set AIRTABLE_API_KEY and AIRTABLE_BASE_ID for spreadsheet logging
+2. **Notion**: Configure NOTION_API_KEY and NOTION_DATABASE_ID for database integration
+3. **n8n**: Use provided workflows for automation platform integration
+
+### Custom Filters:
+- Add custom search queries via admin dashboard
+- Validate queries before activation
+- Monitor filter performance and results
+
+### Analytics:
+- Tweet volume tracking
+- Author engagement analysis
+- Keyword trending identification
+- Sentiment scoring (basic implementation)
+
+### Security:
+- Encrypted credential storage
+- Rate limiting protection
+- Input validation and sanitization
+- Secure webhook handling
+
+## PROJECT STRUCTURE
+
+```
+podha-twitter-listener/
+├── src/
+│   ├── index.js                 # Main application entry
+│   ├── services/               # Core services
+│   │   ├── twitterScraper.js   # Twitter data collection
+│   │   ├── discordNotifier.js  # Discord notifications
+│   │   ├── filterEngine.js     # Search query processing
+│   │   ├── tweetStorage.js     # Database operations
+│   │   ├── adminDashboard.js   # Web interface
+│   │   └── ...                 # Other services
+│   ├── utils/                  # Utility modules
+│   │   ├── logger.js           # Logging system
+│   │   └── scheduler.js        # Task scheduling
+│   └── views/                  # Dashboard templates
+├── n8n-workflows/              # Automation workflows
+├── data/                       # Database storage
+├── logs/                       # Application logs
+├── .env                        # Configuration
+└── package.json               # Dependencies
+```
+
+This project is designed for crypto/DeFi communities, trading groups, and protocol teams who need real-time monitoring of Twitter conversations around specific topics. It's particularly useful for tracking narrative shifts, community sentiment, and important announcements in the RWA and DeFi space.

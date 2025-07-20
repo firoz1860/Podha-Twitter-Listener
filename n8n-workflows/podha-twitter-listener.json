@@ -1,0 +1,137 @@
+{
+  "name": "Podha Twitter Listener",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hour": 1
+            }
+          ]
+        }
+      },
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "cd /data && node src/index.js"
+      },
+      "name": "Execute Podha Listener",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$node[\"Execute Podha Listener\"].json[\"code\"]}}",
+              "value2": "0"
+            }
+          ]
+        }
+      },
+      "name": "Check Success",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "webhookUrl": "={{$env[\"DISCORD_WEBHOOK_URL\"]}}",
+        "content": "✅ Podha Twitter Listener executed successfully",
+        "embeds": [
+          {
+            "color": "3066993",
+            "title": "Workflow Status",
+            "description": "The Twitter listener workflow completed successfully"
+          }
+        ]
+      },
+      "name": "Success Notification",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [
+        900,
+        180
+      ]
+    },
+    {
+      "parameters": {
+        "webhookUrl": "={{$env[\"DISCORD_WEBHOOK_URL\"]}}",
+        "content": "❌ Podha Twitter Listener failed",
+        "embeds": [
+          {
+            "color": "15158332",
+            "title": "Workflow Error",
+            "description": "The Twitter listener workflow encountered an error"
+          }
+        ]
+      },
+      "name": "Error Notification",
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 1,
+      "position": [
+        900,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Execute Podha Listener",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Podha Listener": {
+      "main": [
+        [
+          {
+            "node": "Check Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Success": {
+      "main": [
+        [
+          {
+            "node": "Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

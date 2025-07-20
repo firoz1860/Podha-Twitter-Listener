@@ -1,0 +1,11 @@
+2025-07-09T05:30:15.123Z [ERROR] Database connection failed: SQLITE_CANTOPEN: unable to open database file
+2025-07-09T05:30:16.456Z [INFO] Database directory created successfully: ./data
+2025-07-09T05:30:16.789Z [INFO] Database initialized successfully
+2025-07-09T05:31:22.345Z [WARN] Discord webhook URL not configured properly
+2025-07-09T05:31:23.567Z [ERROR] Failed to send test message to Discord: Invalid URL
+2025-07-09T05:32:10.890Z [INFO] Sample data inserted into database
+2025-07-09T05:32:11.123Z [INFO] Twitter scraper initialized with Nitter proxy
+2025-07-09T05:33:45.678Z [WARN] Rate limit exceeded, waiting 60 seconds before retry
+2025-07-09T05:34:12.234Z [INFO] Successfully scraped 15 tweets for keyword: AI
+2025-07-09T05:34:13.456Z [ERROR] Failed to process tweet ID: tweet_12345 - Invalid date format
+2025-07-09T05:35:17.141Z [ERROR] Failed to send test message to Discord: Invalid URL {"code":"ERR_INVALID_URL","input":"undefined","service":"podha-twitter-listener"}
