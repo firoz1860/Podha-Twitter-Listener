@@ -1,6 +1,7 @@
 
 // --- FIXED VERSION ---
-const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const logger = require('../utils/logger');
